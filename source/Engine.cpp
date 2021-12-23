@@ -38,12 +38,9 @@ void Engine::commandLine()
         if(line == "!")
         {
             lex.pass(cmd);
-            if(lex.isParsable() > 0)
-            { 
                 parser.execute();
                 updateTheCode(parser.getans());
                 resetShader = true;
-            }
             line = "";
             cmd = "";
         }

@@ -43,12 +43,14 @@ void Parser::initialize(std::string finalZ, Lexer* lex)
     Node e($);
     sstack.push_back(e);
     sstack.push_back(m);
+    
+   // int tmaxS = lex->tokens.size() - 1;
 }
 
 void Parser::fM()
 {
-  if(!sstack.back().processed)
-  {
+   if(!sstack.back().processed)
+   {
       sstack.back().processed = true;
       sstack.back().prodno = 0;
       Node a(id);
@@ -78,6 +80,8 @@ void Parser::fM()
           if(sstack.back().syn.zString != "")
           {
               if(identity)
+                  symbolTable[s].zString += sstack.back().syn.zString;
+              else if(sstack.back().syn.zString[0] == '+' || sstack.back().syn.zString[0] == '-')
                   symbolTable[s].zString += sstack.back().syn.zString;
               else
                  symbolTable[s].zString += "+" + sstack.back().syn.zString ;
@@ -125,6 +129,7 @@ void Parser::fM()
       }
          
       variable.clear();
+ 
  }
 
 }
@@ -145,7 +150,7 @@ void Parser::fX0()
     {
        sstack[_top - 1].syn.r = -1 * sstack.back().syn.r;
        sstack[_top - 1].syn.i = -1 * sstack.back().syn.i;
-       sstack[_top - 1].syn.zString ="-1*(" +sstack.back().syn.zString+")";
+    //   sstack[_top - 1].syn.zString ="-1*(" +sstack.back().syn.zString+")";
     }   
 }
 
@@ -226,7 +231,14 @@ void Parser::fE_0()
       }
       else
       {
-            sstack[_top-1].syn.zString = sstack.back().inh.zString + "+" + sstack.back().syn.zString;
+         int t = sstack.back().inh.zString.length();
+         if(sstack.back().syn.zString[0]=='+'|| sstack.back().syn.zString[0] == '-')
+              sstack[_top-1].syn.zString = sstack.back().syn.zString;
+          else
+          {
+            sstack[_top-1].syn.zString =  sstack.back().inh.zString + "+" + sstack.back().syn.zString;
+       
+          }
       }
     }
 }
@@ -239,7 +251,10 @@ void Parser::fE_1()
         Node a(sub);
         Node b(T);
         Node c(E_);
- 
+ //       if(sstack.back().inside)
+    //    {
+   //         b.inside = true; c.inside = true;
+     //   }
         b.inh.r = sstack.back().syn.r;
         b.inh.i = sstack.back().syn.i;
         sstack.back().inh.zString = sstack.back().syn.zString;
@@ -249,17 +264,20 @@ void Parser::fE_1()
         sstack.push_back(c);
         sstack.push_back(b);
         sstack.push_back(a);
+        //
     }
     else
     {
        sstack[_top - 1].syn.r = sstack.back().syn.r;
        sstack[_top - 1].syn.i = sstack.back().syn.i;
-       if(sstack.back().syn.zString == "")
+       if(sstack.back().syn.zString[0] == '+' || sstack.back().syn.zString[0] == '-')
        { sstack[_top - 1].syn.zString = sstack.back().inh.zString;}
        else
-       { 
-           sstack[_top -1].syn.zString = sstack.back().inh.zString + "-" + sstack.back().syn.zString;
+       {
+         sstack[_top -1].syn.zString = sstack.back().inh.zString + "-" + sstack.back().syn.zString;
+       
        }
+
     }
 }
 
@@ -273,7 +291,6 @@ void Parser::fE_2()
     }
     else
     {
-
         sstack[_top-1].syn.r = sstack.back().syn.r;
         sstack[_top-1].syn.i = sstack.back().syn.i;
         sstack[_top-1].syn.zString = sstack.back().syn.zString;
@@ -302,16 +319,19 @@ void Parser::fT()
         {
             sstack[_top - 1].syn.r = sstack.back().syn.r + sstack.back().inh.r;
             sstack[_top - 1].syn.i = sstack.back().syn.i + sstack.back().inh.i;
+   //         sstack[_top - 1].syn.zString = sstack.back().syn.zString + "+" + sstack.back().inh.zString;            
         }
         else if(sstack.back().o_p == sub)
         {
             sstack[_top - 1].syn.r = sstack.back().inh.r - sstack.back().syn.r;
-            sstack[_top - 1].syn.i = sstack.back().inh.i - sstack.back().syn.i; 
+            sstack[_top - 1].syn.i = sstack.back().inh.i - sstack.back().syn.i;
+     //       sstack[_top - 1].syn.zString = sstack.back().inh.zString + "-" + sstack.back().syn.zString;
         }
         else
         {
             sstack[_top - 1].syn.r = sstack.back().syn.r;
             sstack[_top - 1].syn.i = sstack.back().syn.i;
+     //       sstack[_top - 1].syn.zString = sstack.back().syn.zString;
         }
 
         sstack[_top -1].syn.zString = sstack.back().syn.zString;
@@ -385,8 +405,10 @@ void Parser::fT_2()
       }
       else
       {
+       
         int x=0;
           std::string divORmul = sstack.back().syn.zString;
+        
           int outside = variable.size() - divORmul.size();
           float rr = sstack.back().syn.r;
         float ii = sstack.back().syn.i;
@@ -397,9 +419,9 @@ void Parser::fT_2()
         sstack[_top - 1].syn.r = 0;  sstack[_top - 1].syn.i = 0;
         
         if(sstack.back().inside)
-        {  
-            sstack[_top -1].syn.r = 1;
+        {   sstack[_top -1].syn.r = 1;
         }
+        
         
         for(int r=outside; r<divORmul.size()+outside; r++)
         {  
@@ -456,13 +478,13 @@ void Parser::fT_2()
             }
             x++;
         }
+        
      
         if(outside <= 0)
             variable.clear();
 
         sstack[_top - 1].syn.zString = convert;
       }
-
     }
 }
 
@@ -485,7 +507,6 @@ void Parser::fF0()
         else if(searchForString(dd->getLex()))
 		{
             sss = symbolTable[dd->getLex()].zString;
-        
             if(sss == "null" || sss == "")
             {
 			    rr = symbolTable[dd->getLex()].r;
@@ -499,13 +520,13 @@ void Parser::fF0()
         }
 		else
 		{
-       
 		    rr = 0;
             ii = 0;
 			Comp_lex x;
 			std::pair<std::string, Comp_lex> xxx(dd->getLex(), x);
 			symbolTable.insert(xxx); 
 		}
+
         sstack.back().syn.r = rr;
         sstack.back().syn.i = ii;
         sstack.back().syn.zString = sss;
@@ -536,7 +557,8 @@ void Parser::fF0()
             sstack[_top -1].syn.i = (sstack.back().inh.i * aa - sstack.back().inh.r * bb)/r2;
             if(sstack.back().isZ)
             {
-                sstack[_top-1].syn.zString = sstack.back().inh.zString + "/";
+                char sign = '/';
+                sstack[_top-1].syn.zString = sstack.back().inh.zString + sign;
             }
             else
             {
@@ -545,6 +567,7 @@ void Parser::fF0()
         }
         else
         {
+           
             sstack[_top-1].syn.r = sstack.back().syn.r;
             sstack[_top-1].syn.i = sstack.back().syn.i;
             if(sstack.back().isZ)
@@ -562,16 +585,16 @@ void Parser::fF0()
 void Parser::fF1()
 {
     int _top = sstack.size()-1;
-
     if(!sstack.back().processed)
     {
         sstack.back().processed = true;
         sstack.back().prodno = 12;
         Node a(real_); 
         Token_real* dd = (Token_real*)(lex->tokens.front());
+
 		sstack.back().syn.r = dd->getVal();
 		sstack.back().syn.i = 0;
-		sstack.back().syn.zString = "";
+		sstack.back().syn.zString = sstack.back().inh.zString;
         sstack.push_back(a);
 	}
     else
@@ -585,8 +608,10 @@ void Parser::fF1()
         {
             float aa = sstack.back().syn.r,  bb = sstack.back().syn.i;
             float r2 = aa * aa + bb * bb;
+            
             sstack[_top - 1].syn.r = (sstack.back().inh.r * aa + sstack.back().inh.i * bb)/r2;
             sstack[_top -1].syn.i = (sstack.back().inh.i * aa - sstack.back().inh.r * bb)/r2;
+        
             // do something for zString here
         }
         else
@@ -610,6 +635,7 @@ void Parser::fF2()
         Token_img* dd = (Token_img*)(lex->tokens.front());
 		sstack.back().syn.r = 0;
 		sstack.back().syn.i = dd->getVal();
+        sstack.back().syn.zString = sstack.back().inh.zString;
         sstack.push_back(a);
     }
     else
@@ -634,7 +660,7 @@ void Parser::fF2()
             sstack[_top-1].syn.i = sstack.back().syn.i;
         }
         sstack[_top-1].syn.zString = sstack.back().syn.zString;
-        
+ 
     }
 }
 
@@ -646,7 +672,7 @@ void Parser::fF3()
         Node a(bracky_l); Node b(Y);
         sstack.back().processed = true;
         sstack.back().prodno = 14;
-     //   sstack.back().inh.zString = sstack.back().syn.zStrig;
+        sstack.back().inh.zString = sstack.back().syn.zString;
         sstack.push_back(b); sstack.push_back(a);
         //dont synthesise here
     }
@@ -664,7 +690,7 @@ void Parser::fF3()
             float r2 = aa * aa + bb * bb;
             sstack[_top - 1].syn.r = (sstack.back().inh.r * aa + sstack.back().inh.i * bb)/r2;
             sstack[_top -1].syn.i = (sstack.back().inh.i * aa - sstack.back().inh.r * bb)/r2;
-            sstack[_top - 1].syn.zString = sstack.back().inh.zString + "/";
+            sstack[_top - 1].syn.zString = sstack.back().inh.zString + "*";
         }
 
         else
@@ -704,11 +730,18 @@ void Parser::fY0()
                variable.pop_back();
 
             brackySize.pop_back();
+    
 
     
           Comp_lex c;
           c.r = 1;  c.i = 0;
-          c.zString = "("+sstack.back().syn.zString+")";
+
+          float ur = sstack.back().syn.r-1, ui = sstack.back().syn.i;
+          std::string addon = "";
+          if(ur!=0 || ui!=0)
+          addon = "+vec2("+std::to_string(ur)+","+std::to_string(ui)+")";
+          
+          c.zString = "("+sstack.back().syn.zString+addon+")";
 
           std::string newbrr = tempVariables();
           std::pair<std::string, Comp_lex> vuv(newbrr,c);
@@ -716,6 +749,9 @@ void Parser::fY0()
           variable.push_back(newbrr);
           sstack[_top - 1].syn.zString = "*";
 
+
+       sstack[_top-1].syn.r = 1;
+       sstack[_top-1].syn.i = 0;
       }
 
     }
@@ -786,18 +822,17 @@ void Parser::execute()
 { 
     bool run = true;
     int prodno = -100;
-    int linecnt = 0;
 
     // XXXXXXXXXX  this should be changed for more than 1 line hence more than 1 $ XXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // XXXXXXXXXXX  First Implement it in lexer too, as lexer can pass only 1 line currently XXXXXXXXXXXXXXXXXXXXXXX
     while(run)
     {
-        
+
+    
         if(lex->tokens.size() == 0)
             run = false;
         if(lex->tokens.front()->getType() == 1 && sstack.back().type == 1)
         {
-            linecnt++;
 
             if(lex->tokens.size() <= 1)
                 run = false;
@@ -814,17 +849,13 @@ void Parser::execute()
         }
         else if(sstack.back().type > 10 )
         {
+
             if(!sstack.back().processed)
             {
                
                 int a = lex->tokens.front()->getType();
                 int b = sstack.back().type - 11;
                 prodno = table[b][a];
-                if(prodno == -100)
-                {
-                    std::cerr << " Parsing error in line "<<linecnt<<std::endl;
-                    run = false;
-                }
                 (*this.*prod[prodno])();
             }           
             if(sstack.back().processed)
@@ -832,6 +863,8 @@ void Parser::execute()
                 (*this.*prod[sstack.back().prodno])();
                 sstack.pop_back();
             }
+
+            
        }
         else if(sstack.back().type <= 10)
         {

@@ -15,14 +15,12 @@
 class Lexer
 {
     private:
-        int countLine = 0;
-        bool parsable = true;
+        int countLine;
     public:
         std::vector<Token*> tokens;
         int getLine();
-        void pass(std::string&);
+        void pass(std::string);
         void show();
-        bool isParsable();
 };
 
 #endif

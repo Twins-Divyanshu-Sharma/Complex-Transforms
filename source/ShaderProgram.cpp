@@ -39,7 +39,7 @@ void ShaderProgram::createShader(unsigned int& shaderID, int shaderType, std::st
     if(!success)
     {
         glGetShaderInfoLog(shaderID, 512, NULL, infolog);
-        std::cerr<<"Error in compiling shader"<<std::endl<<infolog<<std::endl<<shader<<std::endl;
+        std::cerr<<"Error in compiling shader"<<std::endl<<infolog<<std::endl;
     }
 }
 

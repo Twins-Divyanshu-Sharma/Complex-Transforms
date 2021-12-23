@@ -17,7 +17,7 @@
  */
 #include "Lexer.h"
 
-void Lexer::pass(std::string& line)
+void Lexer::pass(std::string line)
 {
     line = line + " ";
     int state = 0;
@@ -27,11 +27,13 @@ void Lexer::pass(std::string& line)
     int num=0, tens=1;
     float decinum = 0;
     Token* t;
-    parsable = true;
+    int danger = 0;
+    bool minusDetected =false;
+    float f = 0;
+
     while( x < line.size())
     {
         char c = line[x];
-
         if(c == 'i')
             input = _i;
         else if(c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' || c == '=' )
@@ -50,12 +52,11 @@ void Lexer::pass(std::string& line)
             state = 12;
         else
         {
-            std::cout << "Invalid character ["<<line[x]<<"] at line "<<countLine<<" parser dont recognise this character "<<std::endl;
-            state = 13; 
-            parsable = false;
+            std::cout << "Invalid character ["<<line[x]<<"] at line "<<countLine<<std::endl;
+            break;
         }
 
-       // std::cout << "state is " << state << std::endl;
+
         switch(state)
         {
             case 0:
@@ -85,7 +86,7 @@ void Lexer::pass(std::string& line)
                 else
                 {
                     std::cerr << "Error : The compiler dont recognise the character "<<line[x]<<" at line "<<countLine<<std::endl;
-                    state = 13;
+                    return;
                 }
                 break;
 
@@ -109,6 +110,12 @@ void Lexer::pass(std::string& line)
                 {
                     state = 0;
                     lexStart = x--; //retract as well
+                    if(minusDetected)
+                   {
+                       num = -num;
+                       minusDetected = false;
+                       danger = 0;
+                   }
                     t = new Token_real(num);
                     tokens.push_back(t);
                     num = 0;
@@ -126,7 +133,7 @@ void Lexer::pass(std::string& line)
                 else
                 {
                     std::cerr << " Error: Expected only digits after a decimal point at line "<<countLine<<std::endl;
-                    state = 13;
+                    return;
                 }
                 break;
                 
@@ -148,7 +155,14 @@ void Lexer::pass(std::string& line)
                     else
                     {
                         state = 0;
-                        t = new Token_real((float)num + decinum);
+                        f = (float)num + decinum;
+                        if(minusDetected)
+                        {
+                            minusDetected = false;
+                            danger =0;
+                            f = -f;
+                        }
+                        t = new Token_real(f);
                         lexStart = x--;
                         num = 0;
                         decinum = 0;
@@ -159,7 +173,14 @@ void Lexer::pass(std::string& line)
                 break;
 
             case 4:
-                t = new Token_img((float)num + decinum);
+                f = (float)num + decinum;
+                if(minusDetected)
+                {
+                    minusDetected = false;
+                    danger = 0;
+                    f = -f;
+                }
+                t = new Token_img(f);
                 lexStart = x--;
                 num = 0;
                 decinum = 0;
@@ -182,8 +203,18 @@ void Lexer::pass(std::string& line)
                 }
                 else
                 {
-                    std::cerr <<"error in line "<<countLine<<" unexpected character"<<std::endl;
-                    state = 13;
+                    state = 0;
+                    num = 0;
+                    int one = 1;
+                    if(minusDetected)
+                    {
+                        minusDetected = false;
+                        danger = 0;
+                        one = -one;
+                    }
+                    t = new Token_img(one);
+                    lexStart = x--;
+                    tokens.push_back(t);
                 }
                 break;
                 
@@ -204,7 +235,14 @@ void Lexer::pass(std::string& line)
                 }
                 else
                 {
+                    /// ______________________________  here was the problem _________________________________________
                     state = 0;
+                    if(minusDetected)
+                    {
+                        minusDetected = false;
+                        danger = 0;
+                        num = -num;
+                    }
                     t = new Token_img(num);
                     lexStart = x--;
                     tokens.push_back(t);
@@ -224,7 +262,7 @@ void Lexer::pass(std::string& line)
                 else
                 {
                     std::cerr<<" only digits expected after a decimal point :: at line "<<countLine<<std::endl;
-                    state = 13;
+                    return;
                 }
                 break;
 
@@ -241,7 +279,14 @@ void Lexer::pass(std::string& line)
                 {
                     decinum = decinum / tens;
                     lexStart = x--;
-                    t = new Token_img((float)num + decinum);
+                    f = (float)num + decinum;
+                    if(minusDetected)
+                    {
+                        minusDetected = false;
+                        danger = 0;
+                        f = -f;
+                    }
+                    t = new Token_img(f);
                     num = 0; decinum = 0; tens = 1;
                     state = 0;
                     tokens.push_back(t);
@@ -268,10 +313,31 @@ void Lexer::pass(std::string& line)
                 break;
 
             case 10:
-                state = 0; 
-                t = new Token(line[--x]);
-                tokens.push_back(t);
-                lexStart = x+1;
+                state = 0;
+                x--;
+                if(line[x] == '=')
+                    danger = 1;
+                else if(danger == 1 && line[x] == '-')
+                {    danger = 2;
+                    minusDetected = true;
+                }
+                else if(danger == 2 && line[x] == '(')
+                    danger = 3;
+                
+                if(danger != 2)
+                {
+                    if(danger == 3)
+                    {
+                        minusDetected = false;
+                        danger = 0;
+                        t = new Token('-');
+                        tokens.push_back(t);
+                    }
+                    t = new Token(line[x]);
+                    tokens.push_back(t);
+                    lexStart = x+1;
+                }
+
                 break;
 
             case 11:
@@ -291,46 +357,39 @@ void Lexer::pass(std::string& line)
                 tokens.push_back(t);
                 state = 0;
                 countLine++;
-                break;
-            
-            case 13:
-                countLine++;
-                x = line.size() + 2;
-                parsable = false;
-                break;
         }
         //end of switch
         x++;
+
     }
-    
 }
 
 void Lexer::show()
 {
-    std::cout << " size is "<<tokens.size()<<std::endl;
+  //  //std::cout << " size is "<<tokens.size()<<std::endl;
     for(int i=0; i<tokens.size(); i++)
     {
         
         int t = tokens[i]->getType();// << " " <<iii->getVal()<<std::endl;
-        std::cout<<t<<" ";
+     //   std::cout<<t<<" ";
         if(t == id)
         {
             Token_id* iii = (Token_id*)tokens[i];
-            std::cout << iii->getLex()<<std::endl;
+         //   std::cout << iii->getLex()<<std::endl;
         }
         else if(t == real_)
         {
             Token_real* iii = (Token_real*)tokens[i];
-            std::cout<< iii->getVal()<<std::endl;
+            //std::cout<< iii->getVal()<<std::endl;
         }
         else if(t == img)
         {
             Token_img* iii = (Token_img*)tokens[i];
-            std::cout << iii->getVal()<<std::endl;
+          //  std::cout << iii->getVal()<<std::endl;
         }
         else
         {
-            std::cout << std::endl;
+         //   std::cout << std::endl;
         }
     
     }
@@ -341,9 +400,3 @@ int Lexer::getLine()
 {
     return countLine;
 }
-
-bool Lexer::isParsable()
-{
-    return parsable;
-}
-

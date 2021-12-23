@@ -23,7 +23,7 @@ class Parser
         typedef void (Parser::*prod_ptr)(void);
         
         std::string finalZ;
-        std::string answer;
+        std::string answer = "";
 
         struct Comp_lex
         {
