@@ -2,7 +2,7 @@
 
 ### A COMPILER for Transformations in Argand Plane
 
-This program is a compiler that converts complex equation to openGL program and then shows the transformation visually
+A compiler is made that converts complex equation to openGL program and then shows the transformation visually
 
 ### How to Use
 
