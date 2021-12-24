@@ -53,7 +53,7 @@ geometryShader = std::string()+
 "{"+
 "   float newscale = 2*scale + 1;"+
 "   float delta = 1/newscale;"+
-"   fColor = vec4(0,0.7f,1,1);"+
+"   fColor = vec4(1,0.7f,0,1);"+
 
 "   for(float i=0; i<=1; i=i+delta)"+
 "   {"+
@@ -66,9 +66,9 @@ geometryShader = std::string()+
 "       gl_Position =ortho*vec4(interpolate,0,1);"+
 
 "       if(gl_in[0].gl_Position.x == 0 && gl_in[1].gl_Position.x == 0)"+
-"           fColor = vec4(0.5f,1,0,1);"+
+"           fColor = vec4(0,0.7f,1,1);"+
 "       if(gl_in[0].gl_Position.y == 0 && gl_in[1].gl_Position.y == 0)"+
-"           fColor = vec4(0.5f,1,0,1);"+
+"           fColor = vec4(0,0.7f,1,1);"+
 
 "       EmitVertex();"+
 "   }"+
