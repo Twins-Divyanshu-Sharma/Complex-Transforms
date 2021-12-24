@@ -7,7 +7,7 @@ A compiler is made that converts complex equation to openGL program and then sho
 ### How to Use
 
 The complex variable is z. Any transformation can be applied on z and seen visually.\
-Terminate the equation using '!'
+Terminate the equation using '!' \
 Program has three buttons
 * Press 'R' to restart animation
 * Press 'Z' to zoom 
