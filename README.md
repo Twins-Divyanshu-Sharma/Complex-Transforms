@@ -9,9 +9,9 @@ A compiler is made that converts complex equation to openGL program and then sho
 The complex variable is z. Any transformation can be applied on z and seen visually.\
 Terminate the equation using '!' \
 Program has three buttons
-* Press 'R' to restart animation
-* Press 'Z' to zoom 
-* Press 'shift + Z' to zoom out
+* Press __'R'__ to restart animation
+* Press __'Z'__ to zoom 
+* Press __'shift + Z'__ to zoom out
 
 ### Some Examples
 
