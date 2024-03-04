@@ -13,6 +13,73 @@ Program has three buttons
 * Press __'Z'__ to zoom 
 * Press __'shift + Z'__ to zoom out
 
+### Lexer
+The following represents the DFA ( Deterministic Finite Automaton ) which is used to convert incoming stream of characters into tokens representing complex number, identifier or an operator.
+
+```mermaid
+graph LR;
+    0((0))--digit-->1((1))
+    0((0))--Operator-->10(((10)))
+    0((0))--whitespace-->11(((11)))
+    0((0))--i-->5((5))
+    0((0))--alphabet-->9(((9)))
+    
+    1((1))--i-->4(((4)))
+    1((1))--digit-->1((1))
+    1((1))--decimal-->2((2))
+    
+
+    2((2))--digit-->3((3))
+    3((3))--digit-->3((3))
+    3((3))--i-->4(((4)))
+
+    5((5))--digit-->6((6))
+    5((5))--alphabet-->9(((9)))
+
+    6((6))--decimal-->7((7))
+    6((6))--alphabet-->9(((9)))
+    6((6))--digit-->6((6))
+
+    7((7))--digit-->8(((8)))
+
+    8(((8)))--digit-->8(((8)))
+
+    9(((9)))--digit | alphabet | i-->9(((9)))
+    
+```
+
+### Parser
+The following are the production rules.
+```
+M -> id = X
+X -> -E | E
+E -> E+T | E-T
+T -> T*F | T/F
+F -> id | real | imaginary | (X) 
+```
+After removing left recursion for LL(1) parser
+```
+M -> id = X
+X -> -E | E
+E -> TE"
+E" -> +TE" | -TE" | e
+T -> FT"
+T" -> *FT" | /FT" | e
+F -> id | real | imaginary | (X)
+```
+
+### Predictive Parsing Table
+Since LL(1) grammar was used, the production rules are modified to eliminate left recursion
+| | id | $ | imaginary | real | + | - | * | / | ( | ) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| M | M -> id=X | | | | | | | | | | 
+| X | X -> E | | X -> E | X -> E | | X -> -E | | | X -> E | |
+| E | E -> TE" | | E -> TE" | E -> TE" | | | | | E -> TE" | |
+| E" | | E" -> e | | | E" -> +TE" | E" -> -TE" | | | | E" -> e | 
+| T | T -> FT" | | T -> FT" | T -> FT" | | | | | T -> FT" | |
+| T" | | T" -> e | | | T" -> e | T" -> e | T" -> *FT" | T" -> /FT" | | T" -> e |
+| F | F -> id | | F -> imaginary | F -> real | | | | | F -> (X) | |
+
 ### Some Examples
 
 ```
